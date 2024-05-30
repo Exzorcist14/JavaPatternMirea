@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task createJar(type: Jar) {
+    archiveFileName = 'practic9.jar'
+    from sourceSets.main.output
+}
+
+task moveJar(type: Copy) {
+    dependsOn createJar
+    from 'build/libs'
+    into 'dock'
+}
+
+task buildDockerImage(type: Exec) {
+    dependsOn moveJar
+    workingDir 'dock'
+    commandLine 'docker', 'build', '-t', 'new-image', '.'
+}
+
+task dockerRun(type: Exec) {
+    dependsOn buildDockerImage
+    commandLine 'docker', 'run', '-d', '-p', '8080:8080', 'new-image'
+}
+
